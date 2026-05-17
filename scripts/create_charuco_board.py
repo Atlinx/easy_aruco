@@ -56,9 +56,21 @@ def generate_marker(dictionary, squares_x, squares_y, square_size, marker_size, 
     if marker_size > square_size:
         raise ValueError('the size of the marker must be less than the size of the chessboard squares')
 
-    aruco_dict = cv2.aruco.Dictionary_get(getattr(cv2.aruco, dictionary))
-    board = cv2.aruco.CharucoBoard_create(squares_x, squares_y, square_size_m, marker_size_m, aruco_dict)
-    imboard = board.draw((image_resolution[0], image_resolution[1]))
+    aruco_dictionary_id = getattr(cv2.aruco, dictionary)
+    if hasattr(cv2.aruco, 'getPredefinedDictionary'):
+        aruco_dict = cv2.aruco.getPredefinedDictionary(aruco_dictionary_id)
+    else:
+        aruco_dict = cv2.aruco.Dictionary_get(aruco_dictionary_id)
+
+    if hasattr(cv2.aruco, 'CharucoBoard_create'):
+        board = cv2.aruco.CharucoBoard_create(squares_x, squares_y, square_size_m, marker_size_m, aruco_dict)
+    else:
+        board = cv2.aruco.CharucoBoard((squares_x, squares_y), square_size_m, marker_size_m, aruco_dict)
+
+    if hasattr(board, 'draw'):
+        imboard = board.draw((image_resolution[0], image_resolution[1]))
+    else:
+        imboard = board.generateImage((image_resolution[0], image_resolution[1]))
 
     f = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
 
